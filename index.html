@@ -2,16 +2,144 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistema de Atendimento</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f7f7f7; }
-    h1 { color: #007bff; text-align: center; }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+    h1, h2 { text-align: center; }
+    nav { text-align: center; margin-bottom: 20px; }
+    nav button { margin: 0 10px; padding: 10px 20px; cursor: pointer; }
+    section, form { display: none; max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+    section.active, form.active { display: block; }
+    label { font-weight: bold; display: block; margin-top: 10px; }
+    input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #007bff; color: white; }
   </style>
 </head>
 <body>
-  <h1>Sistema de Atendimento Funcionando</h1>
-  <p>Se você está vendo isso no navegador, o deploy no Netlify deu certo!</p>
+  <h1>Sistema de Atendimento</h1>
+  <nav>
+    <button onclick="toggleView('formulario')">Registrar Atendimento</button>
+    <button onclick="toggleView('painel')">Painel de Gestão</button>
+  </nav>
+
+  <form id="formulario" class="active" onsubmit="registrar(event)">
+    <label>Data:</label>
+    <input type="date" id="data" required>
+
+    <label>Senha:</label>
+    <input type="text" id="senha" readonly>
+
+    <label>Processo:</label>
+    <input type="text" id="processo" placeholder="Digite o número do processo" required>
+
+    <label>Status:</label>
+    <select id="status">
+      <option>Ausente</option>
+      <option>Em Atendimento</option>
+      <option>Atendido</option>
+      <option>Aguardando</option>
+    </select>
+
+    <label>Urgência:</label>
+    <select id="urgencia">
+      <option>Normal</option>
+      <option>Alvará</option>
+      <option>Urgente</option>
+    </select>
+
+    <label>Responsável:</label>
+    <input type="text" id="responsavel">
+
+    <label>Situação:</label>
+    <select id="situacao">
+      <option>Pendente</option>
+      <option>Feito</option>
+      <option>Fila</option>
+      <option>Em Análise</option>
+      <option>Urgente</option>
+    </select>
+
+    <button type="submit" style="margin-top: 15px;">Salvar Atendimento</button>
+  </form>
+
+  <section id="painel">
+    <h2>Painel de Gestão</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Senha</th>
+          <th>Processo</th>
+          <th>Status</th>
+          <th>Urgência</th>
+          <th>Responsável</th>
+          <th>Situação</th>
+          <th>Dias em aberto</th>
+        </tr>
+      </thead>
+      <tbody id="tabela"></tbody>
+    </table>
+  </section>
+
+  <script>
+    const atendimentos = [];
+
+    function toggleView(view) {
+      document.getElementById("formulario").classList.remove("active");
+      document.getElementById("painel").classList.remove("active");
+      document.getElementById(view).classList.add("active");
+      if (view === "painel") atualizarTabela();
+    }
+
+    function gerarSenha() {
+      const num = atendimentos.length + 1;
+      return "A" + String(num).padStart(3, "0");
+    }
+
+    function registrar(e) {
+      e.preventDefault();
+      const data = document.getElementById("data").value;
+      const senha = gerarSenha();
+      const processo = document.getElementById("processo").value;
+      const status = document.getElementById("status").value;
+      const urgencia = document.getElementById("urgencia").value;
+      const responsavel = document.getElementById("responsavel").value;
+      const situacao = document.getElementById("situacao").value;
+
+      atendimentos.push({ data, senha, processo, status, urgencia, responsavel, situacao });
+      document.getElementById("formulario").reset();
+      document.getElementById("senha").value = senha;
+      alert("Atendimento registrado com sucesso!");
+    }
+
+    function atualizarTabela() {
+      const tbody = document.getElementById("tabela");
+      tbody.innerHTML = "";
+      const hoje = new Date();
+      atendimentos.forEach(at => {
+        const dias = at.situacao === "Feito" ? 0 : Math.floor((hoje - new Date(at.data)) / (1000 * 60 * 60 * 24));
+        const linha = `<tr>
+          <td>${at.data}</td>
+          <td>${at.senha}</td>
+          <td>${at.processo}</td>
+          <td>${at.status}</td>
+          <td>${at.urgencia}</td>
+          <td>${at.responsavel}</td>
+          <td>${at.situacao}</td>
+          <td>${dias}</td>
+        </tr>`;
+        tbody.innerHTML += linha;
+      });
+    }
+
+    window.onload = () => {
+      document.getElementById("data").valueAsDate = new Date();
+      document.getElementById("senha").value = gerarSenha();
+    }
+  </script>
 </body>
 </html>
