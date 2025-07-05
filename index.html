@@ -3,40 +3,50 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Atendimento</title>
+  <title>Sistema de Atendimento - Completo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
-    h1, h2 { text-align: center; }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+    h1 { text-align: center; }
     nav { text-align: center; margin-bottom: 20px; }
-    nav button { margin: 0 10px; padding: 10px 20px; cursor: pointer; }
-    section, form { display: none; max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
-    section.active, form.active { display: block; }
-    label { font-weight: bold; display: block; margin-top: 10px; }
+    nav button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    form, section { display: none; background: #fff; padding: 20px; border-radius: 8px; max-width: 1100px; margin: auto; box-shadow: 0 0 10px #ccc; }
+    form.active, section.active { display: block; }
+    label { display: block; margin-top: 15px; font-weight: bold; }
     input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #007bff; color: white; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+    th { background: #007bff; color: white; }
+    .azul { color: blue; }
+    .vermelho { color: red; }
+    .preto { color: black; }
   </style>
 </head>
 <body>
   <h1>Sistema de Atendimento</h1>
   <nav>
-    <button onclick="toggleView('formulario')">Registrar Atendimento</button>
-    <button onclick="toggleView('painel')">Painel de Gestão</button>
+    <button onclick="toggle('formulario')">Registrar Atendimento</button>
+    <button onclick="toggle('painel')">Painel de Gestão</button>
   </nav>
 
-  <form id="formulario" class="active" onsubmit="registrar(event)">
-    <label>Data:</label>
+  <form id="formulario" class="active" onsubmit="salvar(event)">
+    <label>Prioridade</label>
+    <select id="prioridade" onchange="atualizarCorPrioridade()">
+      <option>Advogado</option>
+      <option>Legal</option>
+      <option>Normal</option>
+    </select>
+
+    <label>Data</label>
     <input type="date" id="data" required>
 
-    <label>Senha:</label>
+    <label>Senha</label>
     <input type="text" id="senha" readonly>
 
-    <label>Processo:</label>
-    <input type="text" id="processo" placeholder="Digite o número do processo" required>
+    <label>Nº Processo</label>
+    <input type="text" id="processo" placeholder="1234567.12-1234.8.08.0012" oninput="formatarProcesso(this)">
 
-    <label>Status:</label>
+    <label>Status</label>
     <select id="status">
       <option>Ausente</option>
       <option>Em Atendimento</option>
@@ -44,66 +54,139 @@
       <option>Aguardando</option>
     </select>
 
-    <label>Urgência:</label>
+    <label>Urgência</label>
     <select id="urgencia">
-      <option>Normal</option>
       <option>Alvará</option>
+      <option>Normal</option>
       <option>Urgente</option>
     </select>
 
-    <label>Responsável:</label>
-    <input type="text" id="responsavel">
+    <label>Atividade</label>
+    <select id="atividade" onchange="preencherDescricao()">
+      <option value="">Selecione</option>
+      <option value="Certidão - expedir">Certidão - expedir</option>
+      <option value="Conclusão">Conclusão</option>
+      <option value="Expedição: alvará">Expedição: alvará</option>
+      <option value="Juntada de Petição">Juntada de Petição</option>
+      <option value="Requerimento">Requerimento</option>
+    </select>
 
-    <label>Situação:</label>
+    <label>Descrição</label>
+    <textarea id="descricao" readonly></textarea>
+
+    <label>Setor</label>
+    <select id="setor" onchange="atualizarResponsavel()">
+      <option value="Atendimento">Atendimento</option>
+      <option value="Alvarás">Alvarás</option>
+      <option value="Autuação">Autuação</option>
+      <option value="Acervo">Acervo</option>
+      <option value="Análise">Análise</option>
+      <option value="Movimentação">Movimentação</option>
+      <option value="JECrim">JECrim</option>
+    </select>
+
+    <label>Responsável</label>
+    <input type="text" id="responsavel" readonly>
+
+    <label>Situação</label>
     <select id="situacao">
-      <option>Pendente</option>
       <option>Feito</option>
-      <option>Fila</option>
+      <option>Pendente</option>
       <option>Em Análise</option>
+      <option>Fila</option>
       <option>Urgente</option>
     </select>
 
-    <button type="submit" style="margin-top: 15px;">Salvar Atendimento</button>
+    <label>Tipo</label>
+    <select id="tipo">
+      <option>Balcão Virtual</option>
+      <option>Telefone</option>
+      <option>Presencial</option>
+      <option>WhatsApp</option>
+      <option>E-mail</option>
+    </select>
+
+    <label>Matéria</label>
+    <select id="materia">
+      <option>JEC</option>
+      <option>JECRIM</option>
+    </select>
+
+    <label>Observação</label>
+    <textarea id="observacao"></textarea>
+
+    <button type="submit" style="margin-top:20px;">Registrar</button>
   </form>
 
   <section id="painel">
     <h2>Painel de Gestão</h2>
-    <table>
+    <table id="tabela">
       <thead>
         <tr>
-          <th>Data</th>
-          <th>Senha</th>
-          <th>Processo</th>
-          <th>Status</th>
-          <th>Urgência</th>
-          <th>Responsável</th>
-          <th>Situação</th>
-          <th>Dias em aberto</th>
+          <th>Data</th><th>Senha</th><th>Processo</th><th>Status</th><th>Urgência</th><th>Responsável</th><th>Situação</th><th>Dias</th>
         </tr>
       </thead>
-      <tbody id="tabela"></tbody>
+      <tbody></tbody>
     </table>
   </section>
 
   <script>
     const atendimentos = [];
+    const descricaoMap = {
+      "Certidão - expedir": "Certidão de Prática Jurídica (concurso)",
+      "Conclusão": "Solicita análise da inicial/ pedido de tutela de urgência",
+      "Expedição: alvará": "Requerimento de expedição de alvará...",
+      "Juntada de Petição": "A parte solicita a juntada de petição",
+      "Requerimento": "A parte deseja fazer requerimento diverso"
+    };
+    const responsavelMap = {
+      "Atendimento": "Valquíria e Gorete",
+      "Alvarás": "Tais e Lucélia",
+      "Autuação": "Cristiano",
+      "Acervo": "Gabriela",
+      "Análise": "Vagner e Luciana",
+      "Movimentação": "Kalista e Lucélia",
+      "JECrim": "Denise"
+    };
 
-    function toggleView(view) {
+    function toggle(id) {
       document.getElementById("formulario").classList.remove("active");
       document.getElementById("painel").classList.remove("active");
-      document.getElementById(view).classList.add("active");
-      if (view === "painel") atualizarTabela();
+      document.getElementById(id).classList.add("active");
+      if (id === "painel") preencherTabela();
     }
 
-    function gerarSenha() {
-      const num = atendimentos.length + 1;
-      return "A" + String(num).padStart(3, "0");
+    function atualizarCorPrioridade() {
+      const campo = document.getElementById("prioridade");
+      const valor = campo.value;
+      campo.className = valor === "Advogado" ? "azul" : valor === "Legal" ? "vermelho" : "preto";
     }
 
-    function registrar(e) {
-      e.preventDefault();
+    function formatarProcesso(input) {
+      const valor = input.value.replace(/\D/g, "");
+      if (valor.length <= 11) {
+        input.value = valor.replace(/(\d{7})(\d{2})?(\d{4})?/, (_, a, b, c) => {
+          return `${a}${b ? "." + b : ""}-${c || ""}`;
+        });
+      } else {
+        input.value = valor.slice(0, 11) + ".8.08.0012";
+      }
+    }
+
+    function preencherDescricao() {
+      const atividade = document.getElementById("atividade").value;
+      document.getElementById("descricao").value = descricaoMap[atividade] || "";
+    }
+
+    function atualizarResponsavel() {
+      const setor = document.getElementById("setor").value;
+      document.getElementById("responsavel").value = responsavelMap[setor] || "";
+    }
+
+    function salvar(event) {
+      event.preventDefault();
       const data = document.getElementById("data").value;
-      const senha = gerarSenha();
+      const senha = "A" + String(atendimentos.length + 1).padStart(3, "0");
       const processo = document.getElementById("processo").value;
       const status = document.getElementById("status").value;
       const urgencia = document.getElementById("urgencia").value;
@@ -111,35 +194,23 @@
       const situacao = document.getElementById("situacao").value;
 
       atendimentos.push({ data, senha, processo, status, urgencia, responsavel, situacao });
+      alert("Atendimento salvo.");
       document.getElementById("formulario").reset();
-      document.getElementById("senha").value = senha;
-      alert("Atendimento registrado com sucesso!");
     }
 
-    function atualizarTabela() {
-      const tbody = document.getElementById("tabela");
-      tbody.innerHTML = "";
+    function preencherTabela() {
+      const corpo = document.querySelector("#tabela tbody");
+      corpo.innerHTML = "";
       const hoje = new Date();
       atendimentos.forEach(at => {
         const dias = at.situacao === "Feito" ? 0 : Math.floor((hoje - new Date(at.data)) / (1000 * 60 * 60 * 24));
-        const linha = `<tr>
-          <td>${at.data}</td>
-          <td>${at.senha}</td>
-          <td>${at.processo}</td>
-          <td>${at.status}</td>
-          <td>${at.urgencia}</td>
-          <td>${at.responsavel}</td>
-          <td>${at.situacao}</td>
-          <td>${dias}</td>
-        </tr>`;
-        tbody.innerHTML += linha;
+        corpo.innerHTML += `<tr><td>${at.data}</td><td>${at.senha}</td><td>${at.processo}</td><td>${at.status}</td><td>${at.urgencia}</td><td>${at.responsavel}</td><td>${at.situacao}</td><td>${dias}</td></tr>`;
       });
     }
 
     window.onload = () => {
       document.getElementById("data").valueAsDate = new Date();
-      document.getElementById("senha").value = gerarSenha();
-    }
+    };
   </script>
 </body>
 </html>
